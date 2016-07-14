@@ -15,7 +15,7 @@ else:
 #Initialize transformers
 
 def initialize_transformer(image_mean, is_flow):
-  shape = (10*16, 3, 227, 227)
+  shape = (1, 3, 227, 227)
   transformer = caffe.io.Transformer({'data': shape})
   channel_mean = np.zeros((3,227,227))
   for channel_index, mean_val in enumerate(image_mean):
@@ -40,9 +40,7 @@ test="test2"
 RGB_images = glob.glob('%s/*.jpg' %(test))
 
 #classify images with singleFrame model
-def singleFrame_classify_images(frames, net, transformer, is_flow):
-  # batch size
-  batch_size = 16
+def singleFrame_classify_images(frames, net, transformer):
 
   input_images = []
   for im in frames:
@@ -51,52 +49,36 @@ def singleFrame_classify_images(frames, net, transformer, is_flow):
 
     #resizing if it's necessary
     if (input_im.shape[0] < 240):
-      input_im = caffe.io.resize_image(input_im, (240,320))
+      input_im = caffe.io.resize_image(input_im, (277,277))
 
     # adding to a list of images  
     input_images.append(input_im)
-  
-  # getting the video lenght
-  vid_length = len(input_images)
 
+  
   # initialize the predictions arr
-  output_predictions = np.zeros((len(input_images),9))
+  output_predictions = []
   for i in range(0,len(input_images)):
     inp_image = input_images[i]
-    # sampling
-    inp_image = caffe.io.oversample(inp_image,[227,227])
-    # ...
-    caffe_in = np.zeros(np.array(clip_input.shape)[[0,3,1,2]], dtype=np.float32)
 
     caffe_in = transformer.preprocess('data',inp_image)
-
-    net.blobs['data'].reshape(caffe_in.shape[0])
+    net.blobs['data'].data[...] = caffe_in
     
-    out = net.forward_all(data=caffe_in)
+    out = net.forward()
 
     # getting the probabilities
-    output_predictions[i:i+batch_size] = np.mean(out['probs'].reshape(10,caffe_in.shape[0]/10,9),0)
+    output_predictions.append(out['probs'].argmax())
 
-  return output_predictions
+  print output_predictions
+
+  #return output_predictions
 
 #Models and weights
 singleFrame_model = 'deploy_singleFrame.prototxt'
 RGB_singleFrame = 'model_stateFarm_iter_100.caffemodel'
 
-input_im = caffe.io.load_image(RGB_images[0])
-input_im = caffe.io.resize_image(input_im, (277,277))
-#inp_image = caffe.io.oversample(input_im,[227,227])
-
-caffe_in = transformer_RGB.preprocess('data',input_im)
-print(caffe_in.shape)
-
 RGB_singleFrame_net =  caffe.Net(singleFrame_model, RGB_singleFrame, caffe.TEST)
 
-RGB_singleFrame_net.blobs['data'].data[...] = caffe_in
-out = RGB_singleFrame_net.forward()
-print(np.argmax(out['probs']))
-#class_RGB_singleFrame, predictions_RGB_singleFrame = \
-#         singleFrame_classify_images(RGB_images, RGB_singleFrame_net, transformer_RGB, False)
+singleFrame_classify_images(RGB_images, RGB_singleFrame_net, transformer_RGB)
 del RGB_singleFrame_net
 
 
