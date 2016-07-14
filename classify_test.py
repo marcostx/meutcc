@@ -56,7 +56,7 @@ def singleFrame_classify_images(frames, net, transformer):
 
   
   # initialize the predictions arr
-  output_predictions = []
+  output_predictions = np.zeros((len(input_images),10))
   for i in range(0,len(input_images)):
     inp_image = input_images[i]
 
@@ -64,13 +64,12 @@ def singleFrame_classify_images(frames, net, transformer):
     net.blobs['data'].data[...] = caffe_in
     
     out = net.forward()
-
     # getting the probabilities
-    output_predictions.append(out['probs'].argmax())
+    val =out['probs'][0][:10]
 
-  print output_predictions
+    output_predictions[i]=val
 
-  #return output_predictions
+  return output_predictions
 
 #Models and weights
 singleFrame_model = 'deploy_singleFrame.prototxt'
@@ -78,8 +77,23 @@ RGB_singleFrame = 'model_stateFarm_iter_100.caffemodel'
 
 RGB_singleFrame_net =  caffe.Net(singleFrame_model, RGB_singleFrame, caffe.TEST)
 
-singleFrame_classify_images(RGB_images, RGB_singleFrame_net, transformer_RGB)
+output = singleFrame_classify_images(RGB_images, RGB_singleFrame_net, transformer_RGB)
 del RGB_singleFrame_net
+
+
+# saving preds
+submission = open('sample_submission.csv','r+')
+test = open('test.csv', 'w')
+lines = submission.readlines()
+test.writelines(lines[0])
+for idx in range(len(output)):
+  newLine=[]
+
+  for index, pp in enumerate(output[idx]):
+      newLine.append(str(pp))
+  newLine = RGB_images[idx].split("/")[1] + ',' + ','.join(newLine) + "\n"
+  test.writelines(newLine)
+
 
 
 def compute_fusion(RGB_pred, flow_pred, p):
