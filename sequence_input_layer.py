@@ -18,8 +18,8 @@ from threading import Thread
 import skimage.io
 import copy
 
-flow_frames = 'flow/'
-RGB_frames = 'ucf_sports_actions/'
+flow_frames = 'flow_images/'
+RGB_frames = 'frames/'
 test_frames = 16 
 train_frames = 16
 test_buffer = 3
@@ -27,12 +27,19 @@ train_buffer = 24
 
 def processImageCrop(im_info, transformer, flow):
   im_path = im_info[0]
-  im_reshape = im_info[1]
+  im_crop = im_info[1] 
+  im_reshape = im_info[2]
+  im_flip = im_info[3]
 
   data_in = caffe.io.load_image(im_path)
   # need to resize /...
   if (data_in.shape[0] < im_reshape[0]) | (data_in.shape[1] < im_reshape[1]):
     data_in = caffe.io.resize_image(data_in, im_reshape)
+
+  # need to flip /..
+  if im_flip:
+    data_in = caffe.io.flip_image(data_in, 1, flow) 
+    data_in = data_in[im_crop[0]:im_crop[2], im_crop[1]:im_crop[3], :] 
 
   processed_image = transformer.preprocess('data_in',data_in)
 
@@ -49,7 +56,7 @@ class sequenceGeneratorVideo(object):
   def __init__(self, buffer_size, clip_length, num_videos, video_dict, video_order):
     self.buffer_size = buffer_size
     self.clip_length = clip_length
-    self.N = self.buffer_size * self.clip_length
+    self.N = self.buffer_size*self.clip_length
     self.num_videos = num_videos
     self.video_dict = video_dict
     self.video_order = video_order
@@ -59,7 +66,7 @@ class sequenceGeneratorVideo(object):
     label_r = []
     im_paths = []
     im_crop = []
-    im_reshape = []  
+    im_reshape = []
     im_flip = []
  
     if self.idx + self.buffer_size >= self.num_videos:
@@ -74,12 +81,11 @@ class sequenceGeneratorVideo(object):
       label = self.video_dict[key]['label']
       video_reshape = self.video_dict[key]['reshape']
       video_crop = self.video_dict[key]['crop']
-      label_r.extend([label] * self.clip_length)
+      label_r.extend([label]*self.clip_length)
 
-      im_reshape.extend([(video_reshape)] * self.clip_length)
+      im_reshape.extend([(video_reshape)]*self.clip_length)
       r0 = int(random.random()*(video_reshape[0] - video_crop[0]))
       r1 = int(random.random()*(video_reshape[1] - video_crop[1]))
-
       im_crop.extend([(r0, r1, r0+video_crop[0], r1+video_crop[1])]*self.clip_length)     
       f = random.randint(0,1)
       im_flip.extend([f]*self.clip_length)
@@ -87,7 +93,6 @@ class sequenceGeneratorVideo(object):
       frames = []
 
       for i in range(rand_frame,rand_frame+self.clip_length):
-        print(self.video_dict[key]['frames'] %i)
         frames.append(self.video_dict[key]['frames'] %i)
      
       im_paths.extend(frames) 
@@ -101,31 +106,25 @@ class sequenceGeneratorVideo(object):
 
     return label_r, im_info
   
-def advance_batch(result, image_processor, sequence_generator, pool):
-
+def advance_batch(result, sequence_generator, image_processor, pool):
+  
     label_r, im_info = sequence_generator()
-    #tmp = image_processor(im_info[0])
-    #print(label_r)
-        
-    try:
-        result['data'] = pool.map(image_processor, im_info)
-    except:
-        print("ERROR")
-        exit()
+    tmp = image_processor(im_info[0])
+    result['data'] = pool.map(image_processor, im_info)
     result['label'] = label_r
     cm = np.ones(len(label_r))
     cm[0::16] = 0
     result['clip_markers'] = cm
 
 class BatchAdvancer():
-    def __init__(self, result,image_processor, sequence_generator, pool):
+    def __init__(self, result, sequence_generator, image_processor, pool):
       self.result = result
-      self.image_processor = image_processor
       self.sequence_generator = sequence_generator
+      self.image_processor = image_processor
       self.pool = pool
  
     def __call__(self):
-      return advance_batch(self.result,self.image_processor, self.sequence_generator, self.pool)
+      return advance_batch(self.result, self.sequence_generator, self.image_processor, self.pool)
 """
 
   Main class to caffe deal with the videos.
@@ -146,7 +145,7 @@ class videoRead(caffe.Layer):
     self.channels = 3
     self.height = 227
     self.width = 227
-    self.path_to_images = RGB_frames
+    self.path_to_images = RGB_frames 
     self.video_list = 'ucf101_split1_testVideos.txt' 
 
   # this method will setup the layer, based on bottom information
@@ -168,13 +167,14 @@ class videoRead(caffe.Layer):
     self.video_order = []
 
     for ix, line in enumerate(f_lines):
-      video = line.split(' ')[0].split('/')[0] # video
+      video = line.split(' ')[0].split('/')[1] # video
       l = int(line.split(' ')[1]) # label
 
       # getting all frames of the video, accessing the folder of the video
-      frames = glob.glob('%s%s/*.jpg' %(self.path_to_images, video))
+      frames = glob.glob('%s%s/*.jpg' %(self.path_to_images, video)) 
       # number of frames
       num_frames = len(frames)
+
       # storing the data into a dictionary
       video_dict[video] = {}
       video_dict[video]['frames'] = frames[0].split('.')[0] + '.%04d.jpg'
@@ -196,16 +196,21 @@ class videoRead(caffe.Layer):
     # like CaffeNet and AlexNet represent images in [0, 255] so the raw_scale
     # of these models must be 255
     self.transformer.set_raw_scale('data_in', 255)
-    #image_mean = [103.939, 116.779, 128.68]
+    #if self.flow:
+    #  image_mean = [128, 128, 128]
+    #  self.transformer.set_is_flow('data_in', True)
+    #else:
+    image_mean = [103.939, 116.779, 128.68]
+    #  self.transformer.set_is_flow('data_in', False)
     
-    #channel_mean = np.zeros((3,227,227))
+    channel_mean = np.zeros((3,227,227))
 
-    #for channel_index, mean_val in enumerate(image_mean):
-    #  channel_mean[channel_index, ...] = mean_val
+    for channel_index, mean_val in enumerate(image_mean):
+      channel_mean[channel_index, ...] = mean_val
 
 
     # Set the mean to subtract for centering the data.
-    #self.transformer.set_mean('data_in', channel_mean)
+    self.transformer.set_mean('data_in', channel_mean)
     # Set the input channel order for e.g. RGB to BGR conversion
     # as needed for the reference ImageNet model
     self.transformer.set_channel_swap('data_in', (2, 1, 0))
@@ -214,7 +219,7 @@ class videoRead(caffe.Layer):
 
     self.thread_result = {}
     self.thread = None
-    pool_size = 1
+    pool_size = 24
 
     # need to preprocess the input images
     self.image_processor = ImageProcessorCrop(self.transformer, self.flow)
@@ -223,7 +228,7 @@ class videoRead(caffe.Layer):
 
     self.pool = Pool(processes=pool_size)
     
-    self.batch_advancer = BatchAdvancer(self.thread_result,self.image_processor, self.sequence_generator, self.pool)
+    self.batch_advancer = BatchAdvancer(self.thread_result, self.sequence_generator, self.image_processor, self.pool)
 
     self.dispatch_worker()
     self.top_names = ['data', 'label','clip_markers']
@@ -232,7 +237,7 @@ class videoRead(caffe.Layer):
     if len(top) != len(self.top_names):
       raise Exception('Incorrect number of outputs (expected %d, got %d)' %
                       (len(self.top_names), len(top)))
-
+    
     self.join_worker()
     for top_index, name in enumerate(self.top_names):
       if name == 'data':
@@ -242,40 +247,42 @@ class videoRead(caffe.Layer):
       elif name == 'clip_markers':
         shape = (self.N,)
       top[top_index].reshape(*shape)
+    print(top)
+    exit(1)
 
   def reshape(self, bottom, top):
     pass
 
   def forward(self, bottom, top):
     if self.thread is not None:
-      self.join_worker()
+      self.join_worker() 
 
     # rearrange the data: The LSTM takes inputs as [video0_frame0, video1_frame0,...] 
     # but the data is currently arranged as [video0_frame0, video0_frame1, ...]
     # the inputs will be arranged in vertical form .
-    #new_result_data = [None] * len(self.thread_result['data']) 
-    #new_result_label = [None] * len(self.thread_result['label']) 
-    #new_result_cm = [None] * len(self.thread_result['clip_markers'])
+    new_result_data = [None] * len(self.thread_result['data']) 
+    new_result_label = [None] * len(self.thread_result['label']) 
+    new_result_cm = [None] * len(self.thread_result['clip_markers'])
 
-    #for i in range(self.frames):
-    #  for ii in range(self.buffer_size):
-    #    old_idx = ii * self.frames + i
-    #    new_idx = i * self.buffer_size + ii
-    #    new_result_data[new_idx] = self.thread_result['data'][old_idx]
-    #    new_result_label[new_idx] = self.thread_result['label'][old_idx]
-    #    new_result_cm[new_idx] = self.thread_result['clip_markers'][old_idx]
+    for i in range(self.frames):
+      for ii in range(self.buffer_size):
+        old_idx = ii * self.frames + i
+        new_idx = i * self.buffer_size + ii
+        new_result_data[new_idx] = self.thread_result['data'][old_idx]
+        new_result_label[new_idx] = self.thread_result['label'][old_idx]
+        new_result_cm[new_idx] = self.thread_result['clip_markers'][old_idx]
 
     for top_index, name in zip(range(len(top)), self.top_names):
       if name == 'data':
         for i in range(self.N):
-          top[top_index].data[i, ...] =  self.thread_result['data'][i] 
+          top[top_index].data[i, ...] = new_result_data[i] 
       elif name == 'label':
-        top[top_index].data[...] = self.thread_result['label']
+        top[top_index].data[...] = new_result_label
       elif name == 'clip_markers':
-        top[top_index].data[...] = self.thread_result['clip_markers']
+        top[top_index].data[...] = new_result_cm
 
     self.dispatch_worker()
-
+      
   def dispatch_worker(self):
     assert self.thread is None
     self.thread = Thread(target=self.batch_advancer)
@@ -289,7 +296,48 @@ class videoRead(caffe.Layer):
   def backward(self, top, propagate_down, bottom):
     pass
 
+"""
+  videoReadTrain_flow is a child class of videoRead and only implements the initialize
+  method.
+"""
+class videoReadTrain_flow(videoRead):
 
+  def initialize(self):
+    self.train_or_test = 'train'
+    self.flow = True
+    self.buffer_size = train_buffer  #num videos processed per batch
+    self.frames = train_frames   #length of processed clip
+    self.N = self.buffer_size*self.frames
+    self.idx = 0
+    self.channels = 3
+    self.height = 227
+    self.width = 227
+    self.path_to_images = flow_frames 
+    self.video_list = 'ucf101_split_trainVideos.txt' 
+
+"""
+  videoReadTest_flow is a child class of videoRead and only implements the initialize
+  method.
+"""
+class videoReadTest_flow(videoRead):
+
+  def initialize(self):
+    self.train_or_test = 'test'
+    self.flow = True
+    self.buffer_size = test_buffer  #num videos processed per batch
+    self.frames = test_frames   #length of processed clip
+    self.N = self.buffer_size*self.frames
+    self.idx = 0
+    self.channels = 3
+    self.height = 227
+    self.width = 227
+    self.path_to_images = flow_frames 
+    self.video_list = 'ucf101_split_testVideos.txt' 
+
+"""
+  videoReadTrain_RGB is a child class of videoRead and only implements the initialize
+  method.
+"""
 class videoReadTrain_RGB(videoRead):
 
   def initialize(self):
@@ -303,7 +351,7 @@ class videoReadTrain_RGB(videoRead):
     self.height = 227
     self.width = 227
     self.path_to_images = RGB_frames 
-    self.video_list = 'ucf12_split_train_videos.txt'
+    self.video_list = 'ucf101_split_trainVideos.txt' 
 
 
 """
@@ -323,4 +371,4 @@ class videoReadTest_RGB(videoRead):
     self.height = 227
     self.width = 227
     self.path_to_images = RGB_frames 
-    self.video_list = 'ucf12_split_test_videos.txt'
+    self.video_list = 'ucf101_split_testVideos.txt' 

@@ -1,4 +1,4 @@
-name: "singleFrame_flow"
+name: "singleFrame_RGB"
 input: "data"
 input_dim: 160
 input_dim: 3

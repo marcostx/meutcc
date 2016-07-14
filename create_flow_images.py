@@ -23,7 +23,7 @@ def dense_flow(hsv, flow):
 if __name__ == '__main__':
     print help_message
     
-    path = "ucf_sports_actions"
+    path = "train"
     classes = []
     videos  = []
     images  = []
@@ -61,33 +61,4 @@ if __name__ == '__main__':
             prev = img
             #cv2.waitKey(0)
 
-
-    #prev = cv2.imread(images[0])
-    #prevgray = cv2.cvtColor(prev, cv2.COLOR_BGR2GRAY)
-    #hsv = np.zeros_like(prev)
-    #hsv[...,1] = 255
-"""
-    for i in range(1,len(images)-1):
-	print(images[i])
-        img = cv2.imread(images[i])
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-        flow = cv2.calcOpticalFlowFarneback(prevgray, gray,0.5, 3, 15, 3, 5, 1.2, 0)
-        prevgray = gray
-
-        #cv2.imshow('frame2',dense_flow(hsv, flow))
-
-	if not exists("flow"):
-		makedirs("flow")
-	if not exists("flow/" + str(images[i].split("/")[1])):
-		makedirs("flow/" + str(images[i].split("/")[1]))
-
-	flow_path = "flow/" + str(images[i].split("/")[1] + "/")
-        cv2.imwrite(flow_path + str(basename(images[i]).split(".")[0]) + str(i) + '_flow.jpg', dense_flow(hsv, flow))
-        #cv2.imshow('im2', img)
-
-        prev = img
-        #cv2.waitKey(0)
-        """
-    
 cv2.destroyAllWindows()

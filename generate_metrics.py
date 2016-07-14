@@ -1,4 +1,4 @@
-outp = open("output2.txt","r")
+outp = open("output3.txt","r")
 out_lines = outp.readlines()
 
 lossAndAccuracy = []
@@ -9,10 +9,6 @@ test_loss = []
 iteration = []
 
 for idx, line in enumerate(out_lines):
-
-	if idx == len(out_lines)-1:
-		break
-
 	n_ = line.split("]")[1]
 	spaces_split = n_.split(" ")
 	if ("accuracy" in spaces_split) or ("loss" in spaces_split):
@@ -44,12 +40,12 @@ for idx,i in enumerate(lossAndAccuracy):
 
 import pylab
 
-
-pylab.plot(range(0,100), test_loss)
+print(len(train_loss))
+pylab.plot(range(0,102), train_loss)
 pylab.xlabel("iterations")
-pylab.ylabel("Test loss")
-pylab.ylim(0.0,5.0)
-pylab.xlim(0, 99)
+pylab.ylabel("Train loss")
+pylab.ylim(0.0,6.0)
+pylab.xlim(0, 100)
 
 pylab.show()
 	

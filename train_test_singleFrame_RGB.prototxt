@@ -10,13 +10,10 @@ layer {
   transform_param {
     mirror: true
     crop_size: 227
-    mean_value: 103.939
-    mean_value: 116.779
-    mean_value: 123.68
   }
   image_data_param {
-    source: "ucf12_split_train_videos.txt"
-    root_folder: "ucf_sports_actions/"
+    source: "stateFarm_train.txt"
+    root_folder: "train/"
     batch_size: 128
     new_height: 240
     new_width: 320
@@ -34,13 +31,10 @@ layer {
   transform_param {
     mirror: true
     crop_size: 227
-    mean_value: 103.939
-    mean_value: 116.779
-    mean_value: 123.68
   }
   image_data_param {
-    source: "ucf12_split_test_videos.txt"
-    root_folder: "ucf_sports_actions/"
+    source: "stateFarm_test.txt"
+    root_folder: "train/"
     batch_size: 128
     new_height: 240
     new_width: 320
