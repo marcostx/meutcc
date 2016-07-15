@@ -27,12 +27,13 @@ train_buffer = 24
 
 def processImageCrop(im_info, transformer, flow):
   im_path = im_info[0]
-  im_reshape = im_info[1]
+  im_reshape = im_info[2]
+
 
   data_in = caffe.io.load_image(im_path)
   # need to resize /...
-  if (data_in.shape[0] < im_reshape[0]) | (data_in.shape[1] < im_reshape[1]):
-    data_in = caffe.io.resize_image(data_in, im_reshape)
+  #if (data_in.shape[0] < im_reshape[0]) | (data_in.shape[1] < im_reshape[1]):
+  data_in = caffe.io.resize_image(data_in, im_reshape)
 
   processed_image = transformer.preprocess('data_in',data_in)
 
@@ -87,11 +88,10 @@ class sequenceGeneratorVideo(object):
       frames = []
 
       for i in range(rand_frame,rand_frame+self.clip_length):
-        print(self.video_dict[key]['frames'] %i)
+        #print(self.video_dict[key]['frames'] %i)
         frames.append(self.video_dict[key]['frames'] %i)
-     
+      
       im_paths.extend(frames) 
-    
     
     im_info = zip(im_paths,im_crop, im_reshape, im_flip)
 
@@ -103,15 +103,13 @@ class sequenceGeneratorVideo(object):
   
 def advance_batch(result, image_processor, sequence_generator, pool):
 
-    label_r, im_info = sequence_generator()
-    #tmp = image_processor(im_info[0])
-    #print(label_r)
-        
+    label_r, im_info = sequence_generator()  
     try:
         result['data'] = pool.map(image_processor, im_info)
     except:
         print("ERROR")
         exit()
+          
     result['label'] = label_r
     cm = np.ones(len(label_r))
     cm[0::16] = 0
@@ -178,7 +176,7 @@ class videoRead(caffe.Layer):
       # storing the data into a dictionary
       video_dict[video] = {}
       video_dict[video]['frames'] = frames[0].split('.')[0] + '.%04d.jpg'
-      video_dict[video]['reshape'] = (240,320)
+      video_dict[video]['reshape'] = (277,277)
       video_dict[video]['crop'] = (227, 227)
       video_dict[video]['num_frames'] = num_frames
       video_dict[video]['label'] = l
@@ -204,10 +202,6 @@ class videoRead(caffe.Layer):
     #  channel_mean[channel_index, ...] = mean_val
 
 
-    # Set the mean to subtract for centering the data.
-    #self.transformer.set_mean('data_in', channel_mean)
-    # Set the input channel order for e.g. RGB to BGR conversion
-    # as needed for the reference ImageNet model
     self.transformer.set_channel_swap('data_in', (2, 1, 0))
     # set the transpose
     self.transformer.set_transpose('data_in', (2, 0, 1))
@@ -250,20 +244,20 @@ class videoRead(caffe.Layer):
     if self.thread is not None:
       self.join_worker()
 
-    # rearrange the data: The LSTM takes inputs as [video0_frame0, video1_frame0,...] 
-    # but the data is currently arranged as [video0_frame0, video0_frame1, ...]
-    # the inputs will be arranged in vertical form .
-    #new_result_data = [None] * len(self.thread_result['data']) 
-    #new_result_label = [None] * len(self.thread_result['label']) 
-    #new_result_cm = [None] * len(self.thread_result['clip_markers'])
+    #rearrange the data: The LSTM takes inputs as [video0_frame0, video1_frame0,...] 
+    #but the data is currently arranged as [video0_frame0, video0_frame1, ...]
+    #the inputs will be arranged in vertical form .
+    new_result_data = [None] * len(self.thread_result['data']) 
+    new_result_label = [None] * len(self.thread_result['label']) 
+    new_result_cm = [None] * len(self.thread_result['clip_markers'])
 
-    #for i in range(self.frames):
-    #  for ii in range(self.buffer_size):
-    #    old_idx = ii * self.frames + i
-    #    new_idx = i * self.buffer_size + ii
-    #    new_result_data[new_idx] = self.thread_result['data'][old_idx]
-    #    new_result_label[new_idx] = self.thread_result['label'][old_idx]
-    #    new_result_cm[new_idx] = self.thread_result['clip_markers'][old_idx]
+    for i in range(self.frames):
+      for ii in range(self.buffer_size):
+        old_idx = ii * self.frames + i
+        new_idx = i * self.buffer_size + ii
+        new_result_data[new_idx] = self.thread_result['data'][old_idx]
+        new_result_label[new_idx] = self.thread_result['label'][old_idx]
+        new_result_cm[new_idx] = self.thread_result['clip_markers'][old_idx]
 
     for top_index, name in zip(range(len(top)), self.top_names):
       if name == 'data':
