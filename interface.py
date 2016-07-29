@@ -16,7 +16,7 @@ classes = {0: "safe driving", 1:"texting right", 2: "talking on the phone right"
 if len(sys.argv) > 1:
 	op = sys.argv[1]
 else:
-	print("Error")
+	print("Error: Usage python interface [op] ")
 	exit()
 
 
@@ -53,6 +53,7 @@ def singleFrame_classify_images(frames, net, transformer):
 		while(True):
 		    # Capture frame-by-frame
 		    ret, frame = cap.read()
+		    
 		    input_im = caffe.io.resize_image(frame, (277,277))
 		    caffe_in = transformer.preprocess('data',input_im)
 		    net.blobs['data'].data[...] = caffe_in
@@ -60,13 +61,21 @@ def singleFrame_classify_images(frames, net, transformer):
 		    out = net.forward()
 		    # getting the probabilities
 		    val =out['probs'][0][:10]
-		    print(np.argmax(val))
+		    sorted_ = np.sort(val)
 
 		    # Our operations on the frame come here
 		    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+		    font = cv2.FONT_HERSHEY_SIMPLEX
+		    cv2.putText(frame,str(classes[np.where(val == sorted_[-1])[0][0]] + ":" + str(val[np.where(val == sorted_[-1])[0][0]])),
+		    	(frame.shape[1]/2,frame.shape[0]-100), font, 0.5,(0,255,0),2,cv2.LINE_AA)
+		    cv2.putText(frame,str(classes[np.where(val == sorted_[-2])[0][0]] + ":" + str(val[np.where(val == sorted_[-2])[0][0]])),
+		    	(frame.shape[1]/2,frame.shape[0]-80), font, 0.5,(0,255,0),2,cv2.LINE_AA)
+		    cv2.putText(frame,str(classes[np.where(val == sorted_[-3])[0][0]] + ":" + str(val[np.where(val == sorted_[-3])[0][0]])),
+		    	(frame.shape[1]/2,frame.shape[0]-60), font, 0.5,(0,255,0),2,cv2.LINE_AA)
 
 		    # Display the resulting frame
-		    cv2.imshow('frame',gray)
+		    cv2.imshow('frame',frame)
+		    cv2.resizeWindow('frame', 400, 400)
 		    if cv2.waitKey(1) & 0xFF == ord('q'):
 		        break
 		cap.release()
@@ -76,6 +85,7 @@ def singleFrame_classify_images(frames, net, transformer):
 	  	c = 0
 	  	for im in frames:
 			# reading the image
+			frame = cv2.imread(im,1)
 			input_im = caffe.io.load_image(im)
 
 			#resizing if it's necessary
@@ -93,14 +103,15 @@ def singleFrame_classify_images(frames, net, transformer):
 			#gray = cv2.cvtColor(input_im, cv2.COLOR_BGR2GRAY)
 			
 			font = cv2.FONT_HERSHEY_SIMPLEX
-			cv2.putText(input_im,str(classes[np.where(val == sorted_[-1])[0][0]] + ":" + str(val[np.where(val == sorted_[-1])[0][0]])),
-				(input_im.shape[1]/2,input_im.shape[0]-100), font, 0.5,(0,255,0),2,cv2.LINE_AA)
-			cv2.putText(input_im,str(classes[np.where(val == sorted_[-2])[0][0]] + ":" + str(val[np.where(val == sorted_[-2])[0][0]])),
-				(input_im.shape[1]/2,input_im.shape[0]-80), font, 0.5,(0,255,0),2,cv2.LINE_AA)
-			cv2.putText(input_im,str(classes[np.where(val == sorted_[-3])[0][0]] + ":" + str(val[np.where(val == sorted_[-3])[0][0]])),
-				(input_im.shape[1]/2,input_im.shape[0]-60), font, 0.5,(0,255,0),2,cv2.LINE_AA)
+			cv2.putText(frame,str(classes[np.where(val == sorted_[-1])[0][0]] + ":" + str(val[np.where(val == sorted_[-1])[0][0]])),
+				(frame.shape[1]/2,frame.shape[0]-100), font, 0.5,(0,255,0),2,cv2.LINE_AA)
+			cv2.putText(frame,str(classes[np.where(val == sorted_[-2])[0][0]] + ":" + str(val[np.where(val == sorted_[-2])[0][0]])),
+				(frame.shape[1]/2,frame.shape[0]-80), font, 0.5,(0,255,0),2,cv2.LINE_AA)
+			cv2.putText(frame,str(classes[np.where(val == sorted_[-3])[0][0]] + ":" + str(val[np.where(val == sorted_[-3])[0][0]])),
+				(frame.shape[1]/2,frame.shape[0]-60), font, 0.5,(0,255,0),2,cv2.LINE_AA)
+
 			
-			cv2.imshow('frame',input_im)
+			cv2.imshow('frame',frame)
 			if cv2.waitKey(1) & 0xFF == ord('q'):
 				break
 
