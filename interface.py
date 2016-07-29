@@ -5,10 +5,19 @@ import caffe
 import glob
 import pylab as pl
 from tkFileDialog import askdirectory
+import cv2
+import sys
 
 
+classes = {0: "safe driving", 1:"texting right", 2: "talking on the phone right", 
+3: "texting (left)",4: "talking on the phone (left)",5: "operating the radio",
+6: "drinking",7: "reaching behind",8: "hair and makeup",9: "talking to passenger"}
 
-top = Tkinter.Tk()
+if len(sys.argv) > 1:
+	op = sys.argv[1]
+else:
+	print("Error")
+	exit()
 
 
 def initialize_transformer(image_mean, is_flow):
@@ -38,44 +47,68 @@ RGB_images = []
 
 #classify images with singleFrame model
 def singleFrame_classify_images(frames, net, transformer):
-  	img = None
-  	for im in frames:
-  		im = pl.imread(im)
-	  	if img is None:
-			img = pl.imshow(im)
-		else:
-			img.set_data(im)
-		pl.pause(.1)
-		pl.draw()
-  	
-  		
+	if op == "1":
+	  	cap = cv2.VideoCapture(0)
 
-  	"""
-  	input_images = []
-  	c=0
-  	output_predictions = np.zeros((len(frames),10))
-  	for im in frames:
-		print("reading : %d", im)
-		print("classifying image : %d", c)
-		# reading the image
-		input_im = caffe.io.load_image(im)
+		while(True):
+		    # Capture frame-by-frame
+		    ret, frame = cap.read()
+		    input_im = caffe.io.resize_image(frame, (277,277))
+		    caffe_in = transformer.preprocess('data',input_im)
+		    net.blobs['data'].data[...] = caffe_in
 
-		#resizing if it's necessary
-		#if (input_im.shape[0] < 240):
-		input_im = caffe.io.resize_image(input_im, (277,277))
-		caffe_in = transformer.preprocess('data',input_im)
-		net.blobs['data'].data[...] = caffe_in
-		    
-		out = net.forward()
-		# getting the probabilities
-		val =out['probs'][0][:10]
+		    out = net.forward()
+		    # getting the probabilities
+		    val =out['probs'][0][:10]
+		    print(np.argmax(val))
 
-		output_predictions[c]=val
-		print(np.argmax(val))
-		del input_im
-   """
+		    # Our operations on the frame come here
+		    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-filename = "Nothing"
+		    # Display the resulting frame
+		    cv2.imshow('frame',gray)
+		    if cv2.waitKey(1) & 0xFF == ord('q'):
+		        break
+		cap.release()
+		cv2.destroyAllWindows()
+	elif op == "2":
+		output_predictions = np.zeros((len(frames),10))
+	  	c = 0
+	  	for im in frames:
+			# reading the image
+			input_im = caffe.io.load_image(im)
+
+			#resizing if it's necessary
+			imageResized = caffe.io.resize_image(input_im, (277,277))
+			caffe_in = transformer.preprocess('data',imageResized)
+			net.blobs['data'].data[...] = caffe_in
+			    
+			out = net.forward()
+			# getting the probabilities
+			val =out['probs'][0][:10]
+
+			output_predictions[c]=val
+			sorted_ = np.sort(val)
+
+			#gray = cv2.cvtColor(input_im, cv2.COLOR_BGR2GRAY)
+			
+			font = cv2.FONT_HERSHEY_SIMPLEX
+			cv2.putText(input_im,str(classes[np.where(val == sorted_[-1])[0][0]] + ":" + str(val[np.where(val == sorted_[-1])[0][0]])),
+				(input_im.shape[1]/2,input_im.shape[0]-100), font, 0.5,(0,255,0),2,cv2.LINE_AA)
+			cv2.putText(input_im,str(classes[np.where(val == sorted_[-2])[0][0]] + ":" + str(val[np.where(val == sorted_[-2])[0][0]])),
+				(input_im.shape[1]/2,input_im.shape[0]-80), font, 0.5,(0,255,0),2,cv2.LINE_AA)
+			cv2.putText(input_im,str(classes[np.where(val == sorted_[-3])[0][0]] + ":" + str(val[np.where(val == sorted_[-3])[0][0]])),
+				(input_im.shape[1]/2,input_im.shape[0]-60), font, 0.5,(0,255,0),2,cv2.LINE_AA)
+			
+			cv2.imshow('frame',input_im)
+			if cv2.waitKey(1) & 0xFF == ord('q'):
+				break
+
+			del input_im
+			c+=1
+
+
+filename = "p002"
 def classifyVideo():
 	#Models and weights
 	singleFrame_model = 'deploy_singleFrame.prototxt'
@@ -83,7 +116,6 @@ def classifyVideo():
 
 	RGB_singleFrame_net =  caffe.Net(singleFrame_model, RGB_singleFrame, caffe.TEST)
 
-	filename = askdirectory()
 	RGB_images = glob.glob('%s/*.jpg' %(filename))
 
 	output = singleFrame_classify_images(RGB_images, RGB_singleFrame_net, transformer_RGB)
@@ -91,7 +123,5 @@ def classifyVideo():
 
    	#tkMessageBox.showinfo( "Hello Python", filename)
 
-B = Tkinter.Button(top, text ="upload video", command = classifyVideo)
-
-B.pack()
-top.mainloop()
+if __name__ == '__main__':
+	classifyVideo()
