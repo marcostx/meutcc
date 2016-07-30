@@ -112,7 +112,7 @@ def singleFrame_classify_images(frames, net, transformer):
 
 			
 			cv2.imshow('frame',frame)
-			if cv2.waitKey(1) & 0xFF == ord('q'):
+			if cv2.waitKey(5) & 0xFF == ord('q'):
 				break
 
 			del input_im

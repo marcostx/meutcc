@@ -5,11 +5,8 @@ import sys
 import caffe
 import pickle
 
-initial = 40000
-final = 79727
-
-RGB_video_path = 'frames/'
-flow_video_path = 'flow_images/'
+#initial = 40000
+#final = 79727
 
 #Initialize transformers
 
@@ -17,10 +14,14 @@ def initialize_transformer(image_mean, is_flow):
   shape = (1, 3, 227, 227)
   transformer = caffe.io.Transformer({'data': shape})
   
+  channel_mean = np.zeros((3,227,227))
   for channel_index, mean_val in enumerate(image_mean):
-    transformer.set_raw_scale('data', 255)
-    transformer.set_channel_swap('data', (2, 1, 0))
-    transformer.set_transpose('data', (2, 0, 1))
+    channel_mean[channel_index, ...] = mean_val
+  
+  transformer.set_mean('data', channel_mean)
+  transformer.set_raw_scale('data', 255)
+  transformer.set_channel_swap('data', (2, 1, 0))
+  transformer.set_transpose('data', (2, 0, 1))
 
   return transformer
 
@@ -40,41 +41,33 @@ def singleFrame_classify_images(frames, net, transformer):
 
   input_images = []
   c=0
+  output_predictions = np.zeros((len(frames),10))
   for im in frames:
-    if (c >= initial) and (c <= final):
-      print("reading : %d", im)
-          # reading the image
-      input_im = caffe.io.load_image(im)
+    print("reading : %d", im)
+    print("classifying image : %d", c)
+        # reading the image
+    input_im = caffe.io.load_image(im)
 
-      #resizing if it's necessary
-      #if (input_im.shape[0] < 240):
-      input_im = caffe.io.resize_image(input_im, (277,277))
-
-      # adding to a list of images  
-      input_images.append(input_im)
-    c+=1
-
- 
-  # initialize the predictions arr
-  output_predictions = np.zeros((len(input_images),10))
-  for i in range(0,len(input_images)):
-    print("classifying image : %d", i)
-    inp_image = input_images[i]
-
-    caffe_in = transformer.preprocess('data',inp_image)
+    #resizing if it's necessary
+    #if (input_im.shape[0] < 240):
+    input_im = caffe.io.resize_image(input_im, (277,277))
+    caffe_in = transformer.preprocess('data',input_im)
     net.blobs['data'].data[...] = caffe_in
       
     out = net.forward()
     # getting the probabilities
     val =out['probs'][0][:10]
 
-    output_predictions[i]=val
+    output_predictions[c]=val
+    print(np.argmax(val))
+    del input_im
+    c+=1
 
   return output_predictions
 
 #Models and weights
 singleFrame_model = 'deploy_singleFrame.prototxt'
-RGB_singleFrame = 'newModel_stateFarm_iter_500.caffemodel'
+RGB_singleFrame = 'model_stateFarm_iter_1000.caffemodel'
 
 RGB_singleFrame_net =  caffe.Net(singleFrame_model, RGB_singleFrame, caffe.TEST)
 
@@ -87,7 +80,7 @@ submission = open('sample_submission.csv','r+')
 test = open('test.csv', 'a')
 lines = submission.readlines()
 #test.writelines(lines[0])
-for idx, v in enumerate(xrange(initial,final+1)):
+for idx, v in enumerate(range(len(RGB_images))):
   newLine=[]
 
   for index, pp in enumerate(output[idx]):

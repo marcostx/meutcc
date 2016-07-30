@@ -9,6 +9,9 @@ layer {
   }
   transform_param {
     mirror: true
+    mean_value: 103.939
+    mean_value: 116.779
+    mean_value: 123.68
     crop_size: 227
   }
   image_data_param {
@@ -30,6 +33,9 @@ layer {
   }
   transform_param {
     mirror: true
+    mean_value: 103.939
+    mean_value: 116.779
+    mean_value: 123.68
     crop_size: 227
   }
   image_data_param {

@@ -1,4 +1,4 @@
-outp = open("output3.txt","r")
+outp = open("output5.txt","r")
 out_lines = outp.readlines()
 
 lossAndAccuracy = []
@@ -40,12 +40,14 @@ for idx,i in enumerate(lossAndAccuracy):
 
 import pylab
 
-print(len(train_loss))
-pylab.plot(range(0,102), train_loss)
+pylab.plot(range(0,101), test_accuracy,'-r', label="Test accuracy")
+pylab.plot(range(0,101),test_loss,'-b', label="Test Loss")
+pylab.legend(loc="upper right")
 pylab.xlabel("iterations")
-pylab.ylabel("Train loss")
-pylab.ylim(0.0,6.0)
+pylab.ylabel("Test loss/accuracy")
+pylab.ylim(0.0,2.0)
 pylab.xlim(0, 100)
+
 
 pylab.show()
 	
