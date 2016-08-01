@@ -90,7 +90,7 @@ layer {
       std: 0.01         # distribution with stdev 0.01 (default mean: 0)
     }
     bias_filler {
-      type: "constant"  # initialize the biases to zero (0)
+      type: "constant"  # initialize the biases to 0.1
       value: 0.1
     }
   }
@@ -156,7 +156,7 @@ layer {
       std: 0.01         # distribution with stdev 0.01 (default mean: 0)
     }
     bias_filler {
-      type: "constant"  # initialize the biases to zero (0)
+      type: "constant"  # initialize the biases to 0.1
       value: 0.1
     }
   }
@@ -196,28 +196,31 @@ layer {
   bottom: "norm2"
   top: "conv3"
   param {
+    # learning rate and decay multipliers for the filters
     lr_mult: 1
     decay_mult: 1
   }
   param {
+    # learning rate and decay multipliers for the biases
     lr_mult: 2
     decay_mult: 0
   }
   convolution_param {
-    num_output: 512
-    pad: 1
-    kernel_size: 3
+    num_output: 512     # learn 512 filters
+    pad: 1              # specifies the number of pixels to (implicitly) add to each side of the input
+    kernel_size: 3      # each filter is 3x3
     weight_filler {
-      type: "gaussian"
-      std: 0.01
+      type: "gaussian"  # Initialize each filter from the Gaussian
+      std: 0.01         # distribution with stdev 0.01 (default mean: 0)
     }
     bias_filler {
-      type: "constant"
+      type: "constant"  # initialize the biases to 0.1
       value: 0.1
     }
   }
 }
 layer {
+  # taking max(x, 0) for each input x
   name: "relu3"
   type: "ReLU"
   bottom: "conv3"
@@ -229,29 +232,32 @@ layer {
   bottom: "conv3"
   top: "conv4"
   param {
+    # learning rate and decay multipliers for the filters
     lr_mult: 1
     decay_mult: 1
   }
   param {
+    # learning rate and decay multipliers for the biases
     lr_mult: 2
     decay_mult: 0
   }
   convolution_param {
-    num_output: 512
-    pad: 1
-    kernel_size: 3
-    group: 2
+    num_output: 512     # learn 512 filter
+    pad: 1              # specifies the number of pixels to (implicitly) add to each side of the input
+    kernel_size: 3      # each filter is 3x3
+    group: 2            # 2 groups
     weight_filler {
-      type: "gaussian"
-      std: 0.01
+      type: "gaussian"  # Initialize each filter from the Gaussian
+      std: 0.01         # distribution with stdev 0.01 
     }
     bias_filler {
-      type: "constant"
+      type: "constant"  # initialize the biases to 0.1
       value: 0.1
     }
   }
 }
 layer {
+  # taking max(x, 0) for each input x
   name: "relu4"
   type: "ReLU"
   bottom: "conv4"
@@ -263,29 +269,32 @@ layer {
   bottom: "conv4"
   top: "conv5"
   param {
+    # learning rate and decay multipliers for the filters
     lr_mult: 1
     decay_mult: 1
   }
   param {
+    # learning rate and decay multipliers for the biases
     lr_mult: 2
     decay_mult: 0
   }
   convolution_param {
-    num_output: 384
-    pad: 1
-    kernel_size: 3
-    group: 2
+    num_output: 384     # learn 384 filters
+    pad: 1              # specifies the number of pixels to (implicitly) add to each side of the input
+    kernel_size: 3      # each filter is 3x3
+    group: 2            # 2 groups
     weight_filler {
-      type: "gaussian"
-      std: 0.01
+      type: "gaussian"  # initialize the filter from the Gaussian
+      std: 0.01         # distribution with stdev 0.01 
     }
     bias_filler {
-      type: "constant"
+      type: "constant"  # initialize the biases
       value: 0.1
     }
   }
 }
 layer {
+  # taking max(x, 0) for each input x
   name: "relu5"
   type: "ReLU"
   bottom: "conv5"
@@ -298,8 +307,8 @@ layer {
   top: "pool5"
   pooling_param {
     pool: MAX
-    kernel_size: 3
-    stride: 2
+    kernel_size: 3  # pool over a 3x3 region
+    stride: 2       # step 2 pixels (in the bottom blob) between pooling regions
   }
 }
 layer {
@@ -307,27 +316,30 @@ layer {
   type: "InnerProduct"
   bottom: "pool5"
   top: "fc6"
+  # learning rate and decay multipliers for the weights
   param {
     lr_mult: 1
     decay_mult: 1
   }
+  # learning rate and decay multipliers for the biases
   param {
     lr_mult: 2
     decay_mult: 0
   }
   inner_product_param {
-    num_output: 4096
+    num_output: 4096      # output 4096 features
     weight_filler {
-      type: "gaussian"
-      std: 0.01
+      type: "gaussian"  # initialize the filter from the Gaussian
+      std: 0.01         # distribution with stdev 0.01 
     }
     bias_filler {
-      type: "constant"
+      type: "constant" # initialize the biases to 0.1
       value: 0.1
     }
   }
 }
 layer {
+  # taking max(x, 0) for each input x
   name: "relu6"
   type: "ReLU"
   bottom: "fc6"
@@ -339,7 +351,7 @@ layer {
   bottom: "fc6"
   top: "fc6"
   dropout_param {
-    dropout_ratio: 0.5
+    dropout_ratio: 0.5   # Sets the probability p that any given unit is dropped. 
   }
 }
 layer {
@@ -347,27 +359,30 @@ layer {
   type: "InnerProduct"
   bottom: "fc6"
   top: "fc7"
+  # learning rate and decay multipliers for the weights
   param {
     lr_mult: 1
     decay_mult: 1
   }
+  # learning rate and decay multipliers for the biases
   param {
     lr_mult: 2
     decay_mult: 0
   }
   inner_product_param {
-    num_output: 4096
+    num_output: 4096      # output 4096 features
     weight_filler {
-      type: "gaussian"
-      std: 0.01
+      type: "gaussian"    # initialize the filter from the Gaussian
+      std: 0.01           # distribution with stdev 0.01
     }
     bias_filler {
-      type: "constant"
+      type: "constant"    # initialize the biases to 0.1
       value: 0.1
     }
   }
 }
 layer {
+  # taking max(x, 0) for each input x
   name: "relu7"
   type: "ReLU"
   bottom: "fc7"
@@ -379,7 +394,7 @@ layer {
   bottom: "fc7"
   top: "fc7"
   dropout_param {
-    dropout_ratio: 0.5
+    dropout_ratio: 0.5    # Sets the probability p that any given unit is dropped. 
   }
 }
 layer {
@@ -387,27 +402,31 @@ layer {
   type: "InnerProduct"
   bottom: "fc7"
   top: "fc8-ucf"
+  # learning rate and decay multipliers for the weights
   param {
     lr_mult: 10
     decay_mult: 1
   }
+  # learning rate and decay multipliers for the biases
   param {
     lr_mult: 20
     decay_mult: 0
   }
   inner_product_param {
-    num_output: 10
+    num_output: 10        # output 10 values
     weight_filler {
-      type: "gaussian"
-      std: 0.01
+      type: "gaussian"    # initialize the filter from the Gaussian
+      std: 0.01           # distribution with stdev 0.01
     }
     bias_filler {
-      type: "constant"
+      type: "constant"    # initialize biases with 0.1
       value: 0
     }
   }
 }
 layer {
+  # The softmax loss layer computes the multinomial logistic loss of the 
+  # softmax of its inputs. 
   name: "loss"
   type: "SoftmaxWithLoss"
   bottom: "fc8-ucf"
@@ -415,6 +434,8 @@ layer {
   top: "loss"
 }
 layer {
+  # Accuracy scores the output as the accuracy of output with respect to target
+  # – it is not actually a loss and has no backward step.
   name: "accuracy"
   type: "Accuracy"
   bottom: "fc8-ucf"
