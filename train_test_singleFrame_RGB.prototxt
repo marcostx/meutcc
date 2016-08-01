@@ -1,4 +1,4 @@
-name: "singleFrame_RGB"
+name: "stateFarmModel"
 layer {
   name: "data"
   type: "ImageData"
@@ -8,16 +8,26 @@ layer {
     phase: TRAIN
   }
   transform_param {
-    mirror: true
+    # for images in particular horizontal mirroring and random cropping
+    # can be done as simple data augmentations.
+    # horizontal, vertical flipping or both simultaneously
+    mirror: true # 1 = on, 0 = off
     mean_value: 103.939
     mean_value: 116.779
     mean_value: 123.68
+    # crop a `crop_size` x `crop_size` patch:
+    # - at random during training
+    # - from the center during testing
     crop_size: 227
   }
   image_data_param {
+    # target file with train image->class mapping
     source: "stateFarm_train.txt"
+    # folder with train images
     root_folder: "train/"
+    # Every iteration caffe process a batch, in this case the batch_size is the number of images that each batch will contain
     batch_size: 128
+    # apparently this values are being ignored
     new_height: 240
     new_width: 320
   }
@@ -32,16 +42,26 @@ layer {
     stage: "test-on-test"
   }
   transform_param {
+    # for images in particular horizontal mirroring and random cropping
+    # can be done as simple data augmentations.
+    # horizontal, vertical flipping or both simultaneously
     mirror: true
     mean_value: 103.939
     mean_value: 116.779
     mean_value: 123.68
+    # crop a `crop_size` x `crop_size` patch:
+    # - at random during training
+    # - from the center during testing
     crop_size: 227
   }
   image_data_param {
+    # target file with train image->class mapping
     source: "stateFarm_test.txt"
+    # folder with train images
     root_folder: "train/"
+    # Every iteration caffe process a batch, in this case the batch_size is the number of images that each batch will contain
     batch_size: 128
+    # apparently this values are being ignored
     new_height: 240
     new_width: 320
   }
@@ -51,24 +71,26 @@ layer {
   type: "Convolution"
   bottom: "data"
   top: "conv1"
+  # learning rate and decay multipliers for the filters
   param {
     lr_mult: 1
     decay_mult: 1
   }
+  # learning rate and decay multipliers for the biases
   param {
     lr_mult: 2
     decay_mult: 0
   }
   convolution_param {
-    num_output: 96
-    kernel_size: 7
-    stride: 2
+    num_output: 96      # learn 96 filters
+    kernel_size: 7      # each filter is 11x11
+    stride: 2           # step 4 pixels between each filter application
     weight_filler {
-      type: "gaussian"
-      std: 0.01
+      type: "gaussian"  # initialize the filters from a Gaussian
+      std: 0.01         # distribution with stdev 0.01 (default mean: 0)
     }
     bias_filler {
-      type: "constant"
+      type: "constant"  # initialize the biases to zero (0)
       value: 0.1
     }
   }
