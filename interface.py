@@ -104,11 +104,11 @@ def singleFrame_classify_images(frames, net, transformer):
 			
 			font = cv2.FONT_HERSHEY_SIMPLEX
 			cv2.putText(frame,str(classes[np.where(val == sorted_[-1])[0][0]] + ":" + str(val[np.where(val == sorted_[-1])[0][0]])),
-				(frame.shape[1]/2,frame.shape[0]-100), font, 0.5,(0,255,0),2,cv2.LINE_AA)
+				(frame.shape[1]/9,frame.shape[0]-100), font, 0.5,(0,255,0),2,cv2.LINE_AA)
 			cv2.putText(frame,str(classes[np.where(val == sorted_[-2])[0][0]] + ":" + str(val[np.where(val == sorted_[-2])[0][0]])),
-				(frame.shape[1]/2,frame.shape[0]-80), font, 0.5,(0,255,0),2,cv2.LINE_AA)
+				(frame.shape[1]/9,frame.shape[0]-80), font, 0.5,(0,255,0),2,cv2.LINE_AA)
 			cv2.putText(frame,str(classes[np.where(val == sorted_[-3])[0][0]] + ":" + str(val[np.where(val == sorted_[-3])[0][0]])),
-				(frame.shape[1]/2,frame.shape[0]-60), font, 0.5,(0,255,0),2,cv2.LINE_AA)
+				(frame.shape[1]/9,frame.shape[0]-60), font, 0.5,(0,255,0),2,cv2.LINE_AA)
 
 			
 			cv2.imshow('frame',frame)

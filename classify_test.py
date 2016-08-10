@@ -67,7 +67,7 @@ def singleFrame_classify_images(frames, net, transformer):
 
 #Models and weights
 singleFrame_model = 'deploy_singleFrame.prototxt'
-RGB_singleFrame = 'model_stateFarm_iter_1000.caffemodel'
+RGB_singleFrame = 'new_model_stateFarm_iter_1000.caffemodel'
 
 RGB_singleFrame_net =  caffe.Net(singleFrame_model, RGB_singleFrame, caffe.TEST)
 

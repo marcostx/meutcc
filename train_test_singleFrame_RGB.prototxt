@@ -22,7 +22,7 @@ layer {
   }
   image_data_param {
     # target file with train image->class mapping
-    source: "stateFarm_train.txt"
+    source: "new_stateFarm_train.txt"
     # folder with train images
     root_folder: "train/"
     # Every iteration caffe process a batch, in this case the batch_size is the number of images that each batch will contain
@@ -56,7 +56,7 @@ layer {
   }
   image_data_param {
     # target file with train image->class mapping
-    source: "stateFarm_test.txt"
+    source: "new_stateFarm_test.txt"
     # folder with train images
     root_folder: "train/"
     # Every iteration caffe process a batch, in this case the batch_size is the number of images that each batch will contain
