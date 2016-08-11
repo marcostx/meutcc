@@ -15,6 +15,12 @@ classes = {0: "safe driving", 1:"texting right", 2: "talking on the phone right"
 
 if len(sys.argv) > 1:
 	op = sys.argv[1]
+	if op == "2" and len(sys.argv) > 2:
+		filename = sys.argv[2]
+	else:
+		print("Error: Usage python interface 2 [video_frames_path]")
+		exit()
+
 else:
 	print("Error: Usage python interface [op] ")
 	exit()
@@ -46,7 +52,7 @@ transformer_RGB = initialize_transformer(ucf_mean_RGB, False)
 RGB_images = []
 
 #classify images with singleFrame model
-def singleFrame_classify_images(frames, net, transformer):
+def singleFrame_classify_images(net, transformer):
 	if op == "1":
 	  	cap = cv2.VideoCapture(0)
 
@@ -81,6 +87,7 @@ def singleFrame_classify_images(frames, net, transformer):
 		cap.release()
 		cv2.destroyAllWindows()
 	elif op == "2":
+		frames = glob.glob('%s/*.jpg' %(filename))
 		output_predictions = np.zeros((len(frames),10))
 	  	c = 0
 	  	for im in frames:
@@ -119,7 +126,6 @@ def singleFrame_classify_images(frames, net, transformer):
 			c+=1
 
 
-filename = "p002"
 def classifyVideo():
 	#Models and weights
 	singleFrame_model = 'deploy_singleFrame.prototxt'
@@ -127,9 +133,7 @@ def classifyVideo():
 
 	RGB_singleFrame_net =  caffe.Net(singleFrame_model, RGB_singleFrame, caffe.TEST)
 
-	RGB_images = glob.glob('%s/*.jpg' %(filename))
-
-	output = singleFrame_classify_images(RGB_images, RGB_singleFrame_net, transformer_RGB)
+	output = singleFrame_classify_images(RGB_singleFrame_net, transformer_RGB)
 	del RGB_singleFrame_net
 
    	#tkMessageBox.showinfo( "Hello Python", filename)
