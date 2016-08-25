@@ -33,8 +33,8 @@ items = all_videos.keys()
 counter=0
 
 for i in range(len(all_videos)):
-    for val in all_videos[items[i]]:
-        if counter <= 21:
+    for idx, val in enumerate(all_videos[items[i]]):
+        if counter < (len(all_videos)-1):
             train_frames.append(val)
         else:
             test_frames.append(val)

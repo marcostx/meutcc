@@ -129,7 +129,7 @@ def singleFrame_classify_images(net, transformer):
 def classifyVideo():
 	#Models and weights
 	singleFrame_model = 'deploy_singleFrame.prototxt'
-	RGB_singleFrame = 'model_stateFarm_iter_1000.caffemodel'
+	RGB_singleFrame = 'no_data_augm_iter_1000.caffemodel'
 
 	RGB_singleFrame_net =  caffe.Net(singleFrame_model, RGB_singleFrame, caffe.TEST)
 

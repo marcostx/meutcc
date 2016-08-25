@@ -3,7 +3,7 @@ import os
 from os.path import basename, join, exists
 from random import shuffle
 
-targetFolder = "train"
+targetFolder = "flow_train"
 all_videos = []
 train_videos = []
 test_videos = []
