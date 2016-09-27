@@ -1,4 +1,4 @@
-outp = open("output_nodataaug.txt","r")
+outp = open("bat_output.txt","r")
 out_lines = outp.readlines()
 
 lossAndAccuracy = []

@@ -2,8 +2,8 @@ name: "singleFrame_RGB"
 input: "data"
 input_dim: 1
 input_dim: 3
-input_dim: 227
-input_dim: 227
+input_dim: 56
+input_dim: 92
 layer {
   name: "conv1"
   type: "Convolution"

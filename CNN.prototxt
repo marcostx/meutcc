@@ -9,14 +9,14 @@ layer {
   }
   image_data_param {
     # target file with train image->class mapping
-    source: "new_stateFarm_train.txt"
+    source: "bat_train0.txt"
     # folder with train images
-    root_folder: "flow_train/"
+    root_folder: "battrain/"
     # Every iteration caffe process a batch, in this case the batch_size is the number of images that each batch will contain
-    batch_size: 128
+    batch_size: 130
     # apparently this values are being ignored
-    new_height: 227
-    new_width: 227
+    new_height: 56
+    new_width: 92
   }
 }
 layer {
@@ -30,14 +30,14 @@ layer {
   }
   image_data_param {
     # target file with train image->class mapping
-    source: "new_stateFarm_test.txt"
+    source: "bat_test0.txt"
     # folder with train images
-    root_folder: "train/"
+    root_folder: "battrain/"
     # Every iteration caffe process a batch, in this case the batch_size is the number of images that each batch will contain
-    batch_size: 128
+    batch_size: 130
     # apparently this values are being ignored
-    new_height: 227
-    new_width: 227
+    new_height: 56
+    new_width: 92
   }
 }
 layer {
@@ -219,7 +219,7 @@ layer {
     num_output: 512     # learn 512 filter
     pad: 1              # specifies the number of pixels to (implicitly) add to each side of the input
     kernel_size: 3      # each filter is 3x3
-    group: 2            # 2 groups
+    group: 2            # 2 groups (for speed optimization, maybe)
     weight_filler {
       type: "gaussian"  # Initialize each filter from the Gaussian
       std: 0.01         # distribution with stdev 0.01 

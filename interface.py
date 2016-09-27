@@ -9,6 +9,8 @@ import cv2
 import sys
 
 
+
+
 classes = {0: "safe driving", 1:"texting right", 2: "talking on the phone right", 
 3: "texting (left)",4: "talking on the phone (left)",5: "operating the radio",
 6: "drinking",7: "reaching behind",8: "hair and makeup",9: "talking to passenger"}
@@ -17,7 +19,7 @@ if len(sys.argv) > 1:
 	op = sys.argv[1]
 	if op == "2" and len(sys.argv) > 2:
 		filename = sys.argv[2]
-	else:
+	elif op == "2" and len(sys.argv) <= 2:
 		print("Error: Usage python interface 2 [video_frames_path]")
 		exit()
 
@@ -54,6 +56,8 @@ RGB_images = []
 #classify images with singleFrame model
 def singleFrame_classify_images(net, transformer):
 	if op == "1":
+		mean_val = 0
+		_ = 0
 	  	cap = cv2.VideoCapture(0)
 
 		while(True):
@@ -79,16 +83,25 @@ def singleFrame_classify_images(net, transformer):
 		    cv2.putText(frame,str(classes[np.where(val == sorted_[-3])[0][0]] + ":" + str(val[np.where(val == sorted_[-3])[0][0]])),
 		    	(frame.shape[1]/2,frame.shape[0]-60), font, 0.5,(0,255,0),2,cv2.LINE_AA)
 
+		    mean_val += np.where(val == sorted_[-1])[0][0]
+		    _+=1
+
+		    frame = cv2.resize(frame, (640,480))
 		    # Display the resulting frame
 		    cv2.imshow('frame',frame)
 		    cv2.resizeWindow('frame', 400, 400)
 		    if cv2.waitKey(1) & 0xFF == ord('q'):
 		        break
+
+		mean_val = mean_val/_
 		cap.release()
 		cv2.destroyAllWindows()
+
+		return mean_val
 	elif op == "2":
 		frames = glob.glob('%s/*.jpg' %(filename))
 		output_predictions = np.zeros((len(frames),10))
+		mean_val = 0
 	  	c = 0
 	  	for im in frames:
 			# reading the image
@@ -117,7 +130,7 @@ def singleFrame_classify_images(net, transformer):
 			cv2.putText(frame,str(classes[np.where(val == sorted_[-3])[0][0]] + ":" + str(val[np.where(val == sorted_[-3])[0][0]])),
 				(frame.shape[1]/9,frame.shape[0]-60), font, 0.5,(0,255,0),2,cv2.LINE_AA)
 
-			
+			mean_val += np.where(val == sorted_[-1])[0][0]
 			cv2.imshow('frame',frame)
 			if cv2.waitKey(5) & 0xFF == ord('q'):
 				break
@@ -125,6 +138,9 @@ def singleFrame_classify_images(net, transformer):
 			del input_im
 			c+=1
 
+		mean_val = mean_val/len(frames)
+
+	return mean_val
 
 def classifyVideo():
 	#Models and weights
@@ -134,6 +150,7 @@ def classifyVideo():
 	RGB_singleFrame_net =  caffe.Net(singleFrame_model, RGB_singleFrame, caffe.TEST)
 
 	output = singleFrame_classify_images(RGB_singleFrame_net, transformer_RGB)
+	print(output)
 	del RGB_singleFrame_net
 
    	#tkMessageBox.showinfo( "Hello Python", filename)
