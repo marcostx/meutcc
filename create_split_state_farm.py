@@ -42,7 +42,7 @@ for i in range(len(all_videos)):
             val_frames.append(val)
         else:
             test_frames.append(val)
-    
+
     counter+=1
 
 

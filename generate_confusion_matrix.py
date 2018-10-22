@@ -13,7 +13,7 @@ from sklearn.metrics import confusion_matrix, f1_score, recall_score, precision_
 def initialize_transformer():
   shape = (1, 3, 56, 92)
   transformer = caffe.io.Transformer({'data': shape})
-  
+
   #transformer.set_mean('data', channel_mean)
   transformer.set_raw_scale('data', 255)
   transformer.set_channel_swap('data', (2, 1, 0))
@@ -22,7 +22,7 @@ def initialize_transformer():
   return transformer
 
 transformer_RGB = initialize_transformer()
-train="bat_test.txt"
+train="stateFarm_train.txt"
 
 file_ = open(train,'r')
 lines = file_.readlines()
@@ -47,7 +47,7 @@ def singleFrame_classify_images(frames, net, transformer):
     input_im = caffe.io.resize_image(input_im, (56,92))
     caffe_in = transformer.preprocess('data',input_im)
     net.blobs['data'].data[...] = caffe_in
-      
+
     out = net.forward()
     # getting the probabilities
     val =out['probs'][0][:10]
