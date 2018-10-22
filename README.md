@@ -18,6 +18,8 @@ Here, the challenge is to classify each driver's behavior. Are they driving atte
 2. Prepare data
 
  **_TODO_**
+
+
 2. Train RGB model
 ```
 $ ./run_singleFrame_RGB.sh
