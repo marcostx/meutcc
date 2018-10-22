@@ -9,9 +9,9 @@ layer {
   }
   image_data_param {
     # target file with train image->class mapping
-    source: "bat_train0.txt"
+    source: "new_stateFarm_train.txt"
     # folder with train images
-    root_folder: "battrain/"
+    root_folder: "train/"
     # Every iteration caffe process a batch, in this case the batch_size is the number of images that each batch will contain
     batch_size: 130
     # apparently this values are being ignored
@@ -30,9 +30,9 @@ layer {
   }
   image_data_param {
     # target file with train image->class mapping
-    source: "bat_test0.txt"
-    # folder with train images
-    root_folder: "battrain/"
+    source: "new_stateFarm_test.txt"
+    # folder with test images
+    root_folder: "test/"
     # Every iteration caffe process a batch, in this case the batch_size is the number of images that each batch will contain
     batch_size: 130
     # apparently this values are being ignored

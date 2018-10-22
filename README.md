@@ -1,4 +1,4 @@
-  # Distracted Driver Detection with Deep Learning ![CI status](https://img.shields.io/badge/build-passing-brightgreen.svg)
+# Distracted Driver Detection with Deep Learning ![CI status](https://img.shields.io/badge/build-passing-brightgreen.svg)
 
 Here, the challenge is to classify each driver's behavior. Are they driving attentively, wearing their seatbelt, or taking a selfie with their friends in the backseat?
 
@@ -12,14 +12,12 @@ Here, the challenge is to classify each driver's behavior. Are they driving atte
 * matplotlib
 * OpenCV >= 3.0   
 
-## Preparation  
+## Instructions  
 
-1. Download the data in : https://www.kaggle.com/c/state-farm-distracted-driver-detection
+1. Download the data : https://www.kaggle.com/c/state-farm-distracted-driver-detection
+2. Prepare data
 
-1. Extract frames from videos
-```
-$ python extract_frames.py
-```
+ **_TODO_**
 2. Train RGB model
 ```
 $ ./run_singleFrame_RGB.sh
@@ -38,4 +36,4 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 Please make sure to update tests as appropriate.
 
 ## Contact
-[Marcos Teixeira](ecclesiedei@gmail.com)
+Marcos Teixeira ([ecclesiedei@gmail.com])(ecclesiedei@gmail.com)

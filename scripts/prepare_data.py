@@ -22,7 +22,7 @@ for vid in glob(targetFolder + "/*"):
 train=0
 test=0
 for i in xrange(len(all_videos)):
-	
+
 	size = (len(glob(all_videos[i] + "/*")))
 	for idx, vid in enumerate(glob(all_videos[i] + "/*")):
 		if idx < (((size)*80)/100):
