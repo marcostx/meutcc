@@ -15,7 +15,7 @@ Here, the challenge is to classify each driver's behavior. Are they driving atte
 ## Instructions  
 
 1. Download the data : https://www.kaggle.com/c/state-farm-distracted-driver-detection
-2. Prepare data:
+2. Data preparation:
 
 If "stateFarm_train.txt" and "stateFarm_test.txt" are not generated, run:
 
@@ -39,6 +39,19 @@ $ python classify_test.py
 This script classifies the test imgs and fill the submission csv for Kaggle.
 
 
+5. Evaluation
+
+Plot train/test accuracy curve:
+
+```
+$ python generate_metrics.py
+```
+
+Confusion matrix plot:
+
+```
+$ python generate_confusion_matrix.py
+```
 
 
 ## Contributing
@@ -47,4 +60,4 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 _Obs.: The models are highly based on ([LRCN])(https://github.com/LisaAnne/lisa-caffe-public/tree/lstm_video_deploy/examples/LRCN_activity_recognition) repository_
 
 ## Contact
-Marcos Teixeira ([ecclesiedei@gmail.com])(ecclesiedei@gmail.com)
+Fell free to contact [Marcos Teixeira](ecclesiedei@gmail.com) if you have any questions.
