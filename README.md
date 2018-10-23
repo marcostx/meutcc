@@ -15,27 +15,36 @@ Here, the challenge is to classify each driver's behavior. Are they driving atte
 ## Instructions  
 
 1. Download the data : https://www.kaggle.com/c/state-farm-distracted-driver-detection
-2. Prepare data
+2. Prepare data:
 
- **_TODO_**
+If "stateFarm_train.txt" and "stateFarm_test.txt" are not generated, run:
+
+```
+$ python prepare_data.py
+```
 
 
-2. Train RGB model
+3. Train RGB model
 ```
 $ ./run_singleFrame_RGB.sh
 ```
-3. Evaluate the model
+Make sure to change the "root_folder" param in "CNN.prototxt" as needed.
+
+
+4. Evaluate on test
 ```
-$ python generate_confusion_matrix.py
-$ python generate_metrics.py
+$ python classify_test.py
 ```
+
+This script classifies the test imgs and fill the submission csv for Kaggle.
+
 
 
 
 ## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. Please make sure to update tests as appropriate.
 
-Please make sure to update tests as appropriate.
+_Obs.: The models are highly based on ([LRCN])(https://github.com/LisaAnne/lisa-caffe-public/tree/lstm_video_deploy/examples/LRCN_activity_recognition) repository_
 
 ## Contact
 Marcos Teixeira ([ecclesiedei@gmail.com])(ecclesiedei@gmail.com)

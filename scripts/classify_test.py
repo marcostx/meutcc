@@ -13,11 +13,11 @@ import pickle
 def initialize_transformer(image_mean, is_flow):
   shape = (1, 3, 227, 227)
   transformer = caffe.io.Transformer({'data': shape})
-  
+
   channel_mean = np.zeros((3,227,227))
   for channel_index, mean_val in enumerate(image_mean):
     channel_mean[channel_index, ...] = mean_val
-  
+
   transformer.set_mean('data', channel_mean)
   transformer.set_raw_scale('data', 255)
   transformer.set_channel_swap('data', (2, 1, 0))
@@ -53,7 +53,7 @@ def singleFrame_classify_images(frames, net, transformer):
     input_im = caffe.io.resize_image(input_im, (277,277))
     caffe_in = transformer.preprocess('data',input_im)
     net.blobs['data'].data[...] = caffe_in
-      
+
     out = net.forward()
     # getting the probabilities
     val =out['probs'][0][:10]
@@ -66,7 +66,7 @@ def singleFrame_classify_images(frames, net, transformer):
   return output_predictions
 
 #Models and weights
-singleFrame_model = 'deploy_singleFrame.prototxt'
+singleFrame_model = 'CNN.prototxt'
 RGB_singleFrame = 'no_data_augm_iter_1000.caffemodel'
 
 RGB_singleFrame_net =  caffe.Net(singleFrame_model, RGB_singleFrame, caffe.TEST)
